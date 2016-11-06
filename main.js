@@ -43,29 +43,43 @@ function start(){
       -1.0, 0.0, 0.0,
       -0.5, 0.0, 0.0,
       -0.4, 1.0, 0.0
-   ];
+         ];
 
    var trianglePosBuffer = gl.createBuffer()
-   gl.bindBuffer(gl.ARRAY_BUFFER, trianglePosBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, trianglePosBuffer);
    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPos), gl.STATIC_DRAW);
 
    var vertexPos2 = [
       0.0, 1.0, 0.0,
       1.0, 0.0, 0.0,
       1.0, 1.0, 0.0
-      ];
-      
+         ];
+
 
    // draw function
-   gl.clearColor(0.0, 0.0, 0.0, 1.0);
-   gl.enable(gl.DEPTH_TEST);
-   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-   gl.useProgram(shaderProgram);
-   gl.bindBuffer(gl.ARRAY_BUFFER, trianglePosBuffer);
-   gl.vertexAttribPointer(posAttributeLoc, 3, gl.FLOAT, false, 0, 0);
-   gl.drawArrays(gl.TRIANGLES, 0, 6);
 
+   function draw(){
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      gl.enable(gl.DEPTH_TEST);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      var eye = [100, 100, 20];
+      var target = [0, 0, 0];
+      var up = [0, 1, 0];
+
+      var tCamera = m4.inverse(m4.lookAt(eye, target, up));
+
+      gl.useProgram(shaderProgram);
+      gl.bindBuffer(gl.ARRAY_BUFFER, trianglePosBuffer);
+      gl.vertexAttribPointer(posAttributeLoc, 3, gl.FLOAT, false, 0, 0);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+
+
+      window.requestAnimationFrame(draw);
+   }
+   draw();
 }
 
 window.onload = start
