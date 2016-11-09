@@ -2,6 +2,7 @@
 function start(){
    var canvas = document.getElementById("mycanvas");
    var gl = canvas.getContext("webgl");
+   var m4 = twgl.m4;
 
    var vertexSource = document.getElementById("vs").text;
    var fragmentSource = document.getElementById("fs").text;
@@ -33,49 +34,44 @@ function start(){
       alert("Could not initialise shaders");
    }
 
-   var posAttributeLoc = gl.getAttribLocation(shaderProgram, "pos");
-   gl.enableVertexAttribArray(posAttributeLoc);
-
-   var vertexPos = [
-      0.0,  1.0,  0.0,
-      -1.0, -1.0, 0.0,
-      1.0,  -1.0 ,0.0,
-      -1.0, 0.0, 0.0,
-      -0.5, 0.0, 0.0,
-      -0.4, 1.0, 0.0
-         ];
-
-   var trianglePosBuffer = gl.createBuffer()
-      gl.bindBuffer(gl.ARRAY_BUFFER, trianglePosBuffer);
-   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPos), gl.STATIC_DRAW);
-
-   var vertexPos2 = [
-      0.0, 1.0, 0.0,
-      1.0, 0.0, 0.0,
-      1.0, 1.0, 0.0
-         ];
-
-
-   // draw function
-
-
+   var Tower = new tower(shaderProgram, m4, gl);
+   var theta = Math.PI/2;
    function draw(){
       gl.clearColor(0.0, 0.0, 0.0, 1.0);
       gl.enable(gl.DEPTH_TEST);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-      var eye = [100, 100, 20];
+      var eye = [0.0,150.0,400.0];
+      var target = [0,0,0];
+      var up = [0,1,0];
+      
+
+      var tCamera = m4.inverse(m4.lookAt(eye,target,up));
+      var tProjection = m4.perspective(Math.PI/3,1,10,1000);
+
+      gl.useProgram(shaderProgram);
+
+
+/*
+      //theta = theta + Math.PI/60;
+      var eye = [4, 1.5, 0];
       var target = [0, 0, 0];
       var up = [0, 1, 0];
+      
+
 
       var tCamera = m4.inverse(m4.lookAt(eye, target, up));
-
+      var tProjection = m4.perspective(Math.PI/3, 1, 10, 3000);
+      // tCamera is the uniform
+  */    Tower.drawAll(tCamera, tProjection);
+      
+      /*
       gl.useProgram(shaderProgram);
       gl.bindBuffer(gl.ARRAY_BUFFER, trianglePosBuffer);
       gl.vertexAttribPointer(posAttributeLoc, 3, gl.FLOAT, false, 0, 0);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-
+      */
+      
 
       window.requestAnimationFrame(draw);
    }
