@@ -40,14 +40,15 @@ function start(){
       gl.clearColor(0.0, 0.0, 0.0, 1.0);
       gl.enable(gl.DEPTH_TEST);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-      var eye = [0.0,150.0,400.0];
-      var target = [0,0,0];
+      
+      theta = theta + Math.PI/100;
+      var eye = [500.0*Math.cos(theta),500.0,500.0*Math.sin(theta)];
+      var target = [0,200,0];
       var up = [0,1,0];
       
 
       var tCamera = m4.inverse(m4.lookAt(eye,target,up));
-      var tProjection = m4.perspective(Math.PI/3,1,10,1000);
+      var tProjection = m4.perspective(Math.PI/2,1,10,10000);
 
       gl.useProgram(shaderProgram);
 
