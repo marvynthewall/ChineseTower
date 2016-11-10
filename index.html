@@ -38,11 +38,9 @@
 
          float factor = 8.0;
          float factor2 = 8.0;
-         vec3 reflectionlightcolor = vec3(1.0, 0.0, 0.0);
+         vec3 reflectionlightcolor = vec3(1.0, 1.0, 0.3);
          float theta = time * 20.0;
          vec3 reflectionlightsource = vec3( 300.0*cos(theta), 20.0, 300.0 * sin(theta));
-
-
          vec3 white = vec3(1.0, 1.0, 1.0);
 
          float ct = cos(time*20.0);
@@ -71,25 +69,14 @@
          vec3 finalcolor = coloreffect * fColor + diffusingeffect * diffuse + reflectioneffect * reflection1 + whitelighteffect* reflection2;
          //vec3 finalcolor = coloreffect * fColor + diffusingeffect * diffuse;
          gl_FragColor = vec4(finalcolor, 1.0);
-}
-
-/*      precision highp float;
-      uniform 
-      varying vec3 fColor;
-      varying vec3 fNormal;
-      void main(void) {
-         float diffuse = max(0.0, dot(fNormal, normalize(vec3(1.0, 0.0, 0.0))));
-         
-         vec3 color = 0.2 * fColor + 0.8 * diffuse * vec3(1.0, 1.0, 1.0);
-
-         gl_FragColor = vec4(color,1.0) ;
-      }*/
+      }
    </script>
    <script src="util.js"></script>
    <script src="tower.js"></script>
    <script src="main.js"></script>
 </head>
 <body>
-   <canvas id="mycanvas" height="800" width="800">
+   <canvas id="mycanvas" height="800" width="800"></canvas>
+   <input type="range" id="bar1" min="1" max="100" value="50"></input>
 </body>
 </html>

@@ -12,28 +12,77 @@ tower.prototype.drawAll = function (tCamera, tProjection){
    //this.drawCube(this.m4.identity(), tCamera, tProjection, 10, 10, 10);
 }
 tower.prototype.buildlayer = function(tModel, tCamera, tProjection){
-   this.drawblock(tModel, tCamera, tProjection, 200, 200, 200, 'block');
-   tModel = this.m4.translation([0, 200, 0]);
-   this.drawcylinder(tModel, tCamera, tProjection, 200, 80);
+   var l = 400;
+   var h = 250;
+   var w = l;
+   var axisX = [1, 0, 0];
+   var axisY = [0, 1, 0];
+   var axisZ = [0, 0, 1];
+   
+   // roofside
+   var tiltangle = Math.PI/5;
+   var rfx1 = 0.76 * l / 2;
+   var rfx2 = 1.36 * l / 2;
+   var rfy = 5;
+   var rfz1 = -0.15 * l;
+   var rfz2 = 0.22 * l;
+   var roofcylindercolor = 'roof';
+   
+   // corner support
+   var tiltcorner = Math.PI * 0.65;
+   var ccy1 = l * 0.3;
+   var cornerL = 240;
+   var cornerR = 20;
+
+   var trotateY45 = this.m4.axisRotation(axisY, Math.PI/4);
+   var trotateY90 = this.m4.axisRotation(axisY, Math.PI/2);
+
+
+
+   this.drawblock(tModel, tCamera, tProjection, l, h, w, 'block');
+   tModel = this.m4.translation([0, h, 0]);
+   //this.drawcylinder(tModel, tCamera, tProjection, 200, 80, roofcylindercolor);
+   var tNow = tModel;
+   var tedge = this.m4.translation([0, 0, w/2]);
+   var tilt = this.m4.axisRotation(axisX, tiltangle);
+
+   tModel = this.m4.multiply(tilt, this.m4.multiply(tedge, tNow));
+   this.drawroofside(tModel, tCamera, tProjection, rfx1, rfx2, rfy, rfz1, rfz2);
+   tNow = this.m4.multiply(trotateY90, tNow);
+   tModel = this.m4.multiply(tilt, this.m4.multiply(tedge, tNow));
+   this.drawroofside(tModel, tCamera, tProjection, rfx1, rfx2, rfy, rfz1, rfz2);
+   tNow = this.m4.multiply(trotateY90, tNow);
+   tModel = this.m4.multiply(tilt, this.m4.multiply(tedge, tNow));
+   this.drawroofside(tModel, tCamera, tProjection, rfx1, rfx2, rfy, rfz1, rfz2);
+   tNow = this.m4.multiply(trotateY90, tNow);
+   tModel = this.m4.multiply(tilt, this.m4.multiply(tedge, tNow));
+   this.drawroofside(tModel, tCamera, tProjection, rfx1, rfx2, rfy, rfz1, rfz2);
+   tNow = this.m4.multiply(trotateY90, tNow);
+   
+   // tNow is at the roof center
+   
+   var tCorner = this.m4.translation([l/2, 0, w/2]);
+   var tCornertilt = this.m4.axisRotation(axisX, tiltcorner);
+   var tCornerback = this.m4.translation([0, -ccy1, 0]);
+   var tToCorner = this.m4.multiply(tCornerback, this.m4.multiply(tCornertilt, this.m4.multiply(trotateY45, tCorner)));
+   
+   tModel = this.m4.multiply(tToCorner, tNow);
+   this.drawcylinder(tModel, tCamera, tProjection, cornerL, cornerR, roofcylindercolor);
+   tNow = this.m4.multiply(trotateY90, tNow);
+   tModel = this.m4.multiply(tToCorner, tNow);
+   this.drawcylinder(tModel, tCamera, tProjection, cornerL, cornerR, roofcylindercolor);
+   tNow = this.m4.multiply(trotateY90, tNow);
+   tModel = this.m4.multiply(tToCorner, tNow);
+   this.drawcylinder(tModel, tCamera, tProjection, cornerL, cornerR, roofcylindercolor);
+   tNow = this.m4.multiply(trotateY90, tNow);
+   tModel = this.m4.multiply(tToCorner, tNow);
+   this.drawcylinder(tModel, tCamera, tProjection, cornerL, cornerR, roofcylindercolor);
+   tNow = this.m4.multiply(trotateY90, tNow);
 }
 
-tower.prototype.drawblock = function (tModel, tCamera, tProjection, ll, hh, ww, cc = 'normal'){
-   this.SP.PositionAttribute = this.gl.getAttribLocation(this.SP, "vPosition");
-   this.gl.enableVertexAttribArray(this.SP.PositionAttribute);
 
-   this.SP.NormalAttribute = this.gl.getAttribLocation(this.SP, "vNormal");
-   this.gl.enableVertexAttribArray(this.SP.NormalAttribute);
-
-   this.SP.ColorAttribute = this.gl.getAttribLocation(this.SP, "vColor");
-   this.gl.enableVertexAttribArray(this.SP.ColorAttribute);    
-
-   // this gives us access to the matrix uniform
-   this.SP.MVmatrix = this.gl.getUniformLocation(this.SP,"modelViewMatrix");
-
-   this.SP.Nmatrix = this.gl.getUniformLocation(this.SP,"normalMatrix");
-
-   this.SP.Pmatrix = this.gl.getUniformLocation(this.SP,"projectionMatrix");
-
+tower.prototype.drawblock = function (tModel, tCamera, tProjection, ll, hh, ww, cc = 'original'){
+   this.setupdraw();
    // Data ...
    var l = ll/2;
    var h = hh/2;
@@ -49,7 +98,7 @@ tower.prototype.drawblock = function (tModel, tCamera, tProjection, ll, hh, ww, 
          l,-h,-w,  -l,-h,-w,  -l, h,-w,   l, h,-w ]);
 
    var vertexNormals = new Float32Array(
-         [  1, 1, 1,  0, 0, 1,  0, 0, 1,  0, 0, 1,
+         [  0, 0, 1,  0, 0, 1,  0, 0, 1,  0, 0, 1,
          1, 0, 0,  1, 0, 0,  1, 0, 0,  1, 0, 0,
          0, 1, 0,  0, 1, 0,  0, 1, 0,  0, 1, 0,
          -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0,
@@ -71,7 +120,7 @@ tower.prototype.drawblock = function (tModel, tCamera, tProjection, ll, hh, ww, 
          color1 = color1.concat(con1);
       var vertexColors = new Float32Array(color1);
    }
-   else if(cc == 'normal'){
+   else if(cc == 'original'){
       var vertexColors = new Float32Array(
             [  0, 0, 1,   0, 0, 1,   0, 0, 1,   0, 0, 1,
             1, 0, 0,   1, 0, 0,   1, 0, 0,   1, 0, 0,
@@ -159,23 +208,8 @@ tower.prototype.drawblock = function (tModel, tCamera, tProjection, ll, hh, ww, 
 //XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX
 
 //XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX
-tower.prototype.drawcylinder = function (tModel, tCamera, tProjection, h, r){
-   this.SP.PositionAttribute = this.gl.getAttribLocation(this.SP, "vPosition");
-   this.gl.enableVertexAttribArray(this.SP.PositionAttribute);
-
-   this.SP.NormalAttribute = this.gl.getAttribLocation(this.SP, "vNormal");
-   this.gl.enableVertexAttribArray(this.SP.NormalAttribute);
-
-   this.SP.ColorAttribute = this.gl.getAttribLocation(this.SP, "vColor");
-   this.gl.enableVertexAttribArray(this.SP.ColorAttribute);    
-
-   // this gives us access to the matrix uniform
-   this.SP.MVmatrix = this.gl.getUniformLocation(this.SP,"modelViewMatrix");
-
-   this.SP.Nmatrix = this.gl.getUniformLocation(this.SP,"normalMatrix");
-
-   this.SP.Pmatrix = this.gl.getUniformLocation(this.SP,"projectionMatrix");
-
+tower.prototype.drawcylinder = function (tModel, tCamera, tProjection, h, r, index = 'original'){
+   this.setupdraw();
 
    // Vertex Position
    // 4* 12 at side, 12 at top, 12 at bottom, 72 in total
@@ -226,25 +260,31 @@ tower.prototype.drawcylinder = function (tModel, tCamera, tProjection, h, r){
 
 
    // vertex colors
-   var color1 = 0;
-   for(var i = 0 ; i < 12; ++i){
-      var incolor = [0.15, 0.8, 0.15, 0.15, 0.8, 0.15, 0.15, 0.8, 0.15, 0.15, 0.8, 0.15];
+   if(index=='original'){
+      var color1 = 0;
+      for(var i = 0 ; i < 12; ++i){
+         var incolor = [0.15, 0.8, 0.15, 0.15, 0.8, 0.15, 0.15, 0.8, 0.15, 0.15, 0.8, 0.15];
 
-      if(color1 == 0)color1 = incolor;
-      else color1 = color1.concat(incolor);
+         if(color1 == 0)color1 = incolor;
+         else color1 = color1.concat(incolor);
+      }
+      for(var i = 0 ; i < 12; ++i){
+         var incolor = [0.6, 0.3, 0.5];
+         color1 = color1.concat(incolor);
+      }
+      for(var i = 0 ; i < 12; ++i){
+         var incolor = [0.6, 0.3, 0.5];
+         color1 = color1.concat(incolor);
+      }
+      var vertexColors = new Float32Array(color1);
    }
-   console.log(color1.length);
-   for(var i = 0 ; i < 12; ++i){
-      var incolor = [0.6, 0.3, 0.5];
-      color1 = color1.concat(incolor);
+   else if(index == 'roof'){
+      var color1 = [0.4, 0.2, 0.1];
+      var con = [0.4, 0.2, 0.1];
+      for(var i = 1 ; i < 72; ++i)
+         color1 = color1.concat(con);
+      var vertexColors = new Float32Array(color1);
    }
-   for(var i = 0 ; i < 12; ++i){
-      var incolor = [0.6, 0.3, 0.5];
-      color1 = color1.concat(incolor);
-   }
-   var vertexColors = new Float32Array(color1);
-
-   console.log(color1.length);
    // element index array
    // 2 * 12 at side, 10 at top and 10 at bottom, 44 in total
    var triind = 0;
@@ -316,92 +356,86 @@ tower.prototype.drawcylinder = function (tModel, tCamera, tProjection, h, r){
    // Do the drawing
    this.gl.drawElements(this.gl.TRIANGLES, triangleIndices.length, this.gl.UNSIGNED_BYTE, 0);
 }
-/*
-tower.prototype.drawCube = function (tModel, tCamera, tProjection, hh, ll, ww){
-   var h = hh / 2;
-   var l = ll / 2;
-   var w = ww / 2;
+tower.prototype.drawroofside = function (tModel, tCamera, tProjection, x1, x2, h, z1, z2){
+   // z1 is negative, z2 is positive
+   // x1 is the shorter higher side
+   // x2 is the longer lower side
+   // h is the thickness (0, h)
+   this.setupdraw();
 
-   var point = new Float32Array([
-         l, h, w,    l, h, -w,   -l, h, -w,  -l, h, w,
-         l, h, w,    l, -h, w,   l, -h, -w,  l, h, -w,
-         l, h, -w,   l, -h, -w,  -l, -h, -w, -l, h, -w,
-         -l, h, -w,  -l, -h, -w, -l, -h, w,  -l, h, w,
-         -l, h, w,   -l, -h, w,  l, -h, w,   l, h, w,
-         l, -h, w,   -l, -h, w,  -l, -h, -w, l, -h, -w
-         ]);
-   console.log(point);
-   var normal = new Float32Array([
-         0, 1, 0,    0, 1, 0,    0, 1, 0,    0, 1, 0,
-         1, 0, 0,    1, 0, 0,    1, 0, 0,    1, 0, 0,
-         0, 0, -1,   0, 0, -1,   0, 0, -1,   0, 0, -1,
-         -1, 0, 0,   -1, 0, 0,   -1, 0, 0,   -1, 0, 0,
-         0, 0, 1,    0, 0, 1,    0, 0, 1,    0, 0, 1,
-         0, -1, 0,   0, -1, 0,   0, -1, 0,   0, -1, 0
-         ]);
-   var color = new Float32Array([
-      1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0,
-      1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0,
-      1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0,
-      1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         ]);
-   var index = new Uint8Array([
-      0, 1, 2, 0, 2, 3,
-      4, 5, 6, 4, 6, 7,
-      8, 9, 10, 8, 10, 11,
-      12, 13, 14, 12, 14, 15,
-      16, 17, 18, 16, 18, 19,
-      20, 21, 22, 20, 22, 23
-         ]);
-   var positionBuffer = this.gl.createBuffer();
-   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
-   this.gl.bufferData(this.gl.ARRAY_BUFFER, point, this.gl.STATIC_DRAW);
-   positionBuffer.itemSize = 3;
-   positionBuffer.numItems = 24;
+   // vertex positions
+   var vertexPos = new Float32Array(
+         [  x2, h, z2,  x1, h, z1, -x1, h, z1, -x2, h, z2,
+         x1, h, z1, x1, 0, z1, -x1, 0, z1, -x1, h, z1,
+         x1, 0, z1, x2, 0, z2, -x2, 0, z2, -x1, 0, z1,
+         x2, 0, z2, x2, h, z2, -x2, h, z2, -x2, 0, z2]);
 
+   var vertexNormals = new Float32Array(
+         [  0, 1, 0,  0, 1, 0, 0, 1, 0, 0, 1, 0,
+         0, 0, -1,  0, 0, -1,  0, 0, -1,  0, 0, -1,
+         0, -1, 0,  0, -1, 0,  0, -1, 0,  0, -1, 0,
+         0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1
+         ]);
+
+   // vertex colors
+   var color1 = [0.4, 0.3, 0.1];
+   var con1 = [0.4, 0.3, 0.1];
+   var con2 = [0.4, 0.2, 0.1];
+
+   for(var i = 1; i < 4 ; ++i)
+      color1 = color1.concat(con1);
+   for(var i = 4; i < 8 ; ++i)
+      color1 = color1.concat(con2);
+   for(var i = 8; i < 12 ; ++i)
+      color1 = color1.concat(con1);
+   for(var i = 12; i < 16 ; ++i)
+      color1 = color1.concat(con2);
+   var vertexColors = new Float32Array(color1);
+
+   // element index array
+   var triangleIndices = new Uint8Array(
+         [  0, 1, 2,   0, 2, 3,    
+         4, 5, 6,   4, 6, 7,    
+         8, 9,10,   8,10,11,    
+         12,13,14,  12,14,15,]); 
+   // we need to put the vertices into a buffer so we can
+   // block transfer them to the graphics hardware
+   var trianglePosBuffer = this.gl.createBuffer();
+   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, trianglePosBuffer);
+   this.gl.bufferData(this.gl.ARRAY_BUFFER, vertexPos, this.gl.STATIC_DRAW);
+   trianglePosBuffer.itemSize = 3;
+   trianglePosBuffer.numItems = 24;
+
+   // a buffer for normals
    var normalBuffer = this.gl.createBuffer();
    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normalBuffer);
-   this.gl.bufferData(this.gl.ARRAY_BUFFER, normal, this.gl.STATIC_DRAW);
+   this.gl.bufferData(this.gl.ARRAY_BUFFER, vertexNormals, this.gl.STATIC_DRAW);
    normalBuffer.itemSize = 3;
    normalBuffer.numItems = 24;
 
-
+   // a buffer for colors
    var colorBuffer = this.gl.createBuffer();
    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
-   this.gl.bufferData(this.gl.ARRAY_BUFFER, color, this.gl.STATIC_DRAW);
+   this.gl.bufferData(this.gl.ARRAY_BUFFER, vertexColors, this.gl.STATIC_DRAW);
    colorBuffer.itemSize = 3;
    colorBuffer.numItems = 24;
-
+   // a buffer for indices
    var indexBuffer = this.gl.createBuffer();
    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-   this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, index, this.gl.STATIC_DRAW);    
-   
-   var tMV = this.m4.multiply(tModel, tCamera);//ModelViewMatrix
-   var tNormal = this.m4.inverse(this.m4.transpose(tMV));
+   this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, triangleIndices, this.gl.STATIC_DRAW);  
 
-   this.SP.modelViewMatrix = this.gl.getUniformLocation(this.SP, "modelViewMatrix"); 
-   this.gl.uniformMatrix4fv(this.SP.modelViewMatrix,false,tMV);
-   
-   this.SP.normalMatrix = this.gl.getUniformLocation(this.SP, "normalMatrix");
-   this.gl.uniformMatrix4fv(this.SP.modelViewMatrix,false,tNormal);
-   this.SP.projectionMatrix = this.gl.getUniformLocation(this.SP, "projectionMatrix");
-   this.gl.uniformMatrix4fv(this.SP.projectionMatrix, false, tProjection);
+   var tMVP1=this.m4.multiply(this.m4.multiply(tModel,tCamera),tProjection);
+   var tmodelView = this.m4.multiply(tModel, tCamera);
+   var tNormal = this.m4.inverse(this.m4.transpose(tmodelView));
 
+   this.gl.uniformMatrix4fv(this.SP.MVmatrix, false, tmodelView);
 
-   this.SP.PositionAttribute = this.gl.getAttribLocation(this.SP, "vPos");
-   this.gl.enableVertexAttribArray(this.SP.PositionAttribute);
+   this.gl.uniformMatrix4fv(this.SP.Nmatrix, false, tNormal);
 
-   this.SP.NormalAttribute = this.gl.getAttribLocation(this.SP, "vNormal");
-   this.gl.enableVertexAttribArray(this.SP.NormalAttribute);
-   
-   this.SP.ColorAttribute = this.gl.getAttribLocation(this.SP, "vColor");
-   this.gl.enableVertexAttribArray(this.SP.ColorAttribute);
+   this.gl.uniformMatrix4fv(this.SP.Pmatrix, false, tProjection);
 
-
-   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
-   this.gl.vertexAttribPointer(this.SP.PositionAttribute, positionBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, trianglePosBuffer);
+   this.gl.vertexAttribPointer(this.SP.PositionAttribute, trianglePosBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normalBuffer);
    this.gl.vertexAttribPointer(this.SP.NormalAttribute, normalBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
@@ -409,135 +443,25 @@ tower.prototype.drawCube = function (tModel, tCamera, tProjection, hh, ll, ww){
 
    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
+
    // Do the drawing
-   this.gl.drawElements(this.gl.TRIANGLES, index.length, this.gl.UNSIGNED_BYTE, 0);
-   
-}*/
-/*
-tower.prototype.drawtrysimple = function(tModel, tCamera, tProjection, hh, ll, ww){
-   var point = new Float32Array([
-         0, 0.5, 0,    0.5, 0.5, 0,   0, 0.5, 0.5
-         ]);
-   var index = new Uint8Array([
-      0, 1, 2
-         ]);
-   
-   var positionBuffer = this.gl.createBuffer();
-   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
-   this.gl.bufferData(this.gl.ARRAY_BUFFER, point, this.gl.STATIC_DRAW);
-   positionBuffer.itemSize = 3;
-   positionBuffer.numItems = 3;
-
-   var indexBuffer = this.gl.createBuffer();
-   this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-   this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, index, this.gl.STATIC_DRAW);    
-   indexBuffer.itemSize = 1;
-   indexBuffer.numItems = 3;
-
-   this.SP.modelViewMatrix = this.gl.getUniformLocation(this.SP, "modelViewMatrix"); 
-   this.gl.uniformMatrix4fv(this.SP.modelViewMatrix,false,this.m4.identity());
-
-   this.SP.PositionAttribute = this.gl.getAttribLocation(this.SP, "vPos");
-   this.gl.enableVertexAttribArray(this.SP.PositionAttribute);
-
-   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
-   this.gl.vertexAttribPointer(this.SP.PositionAttribute, positionBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
-   this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-   
-   // Do the drawing
-   this.gl.drawElements(this.gl.TRIANGLES, index.length, this.gl.UNSIGNED_BYTE, 0);
+   this.gl.drawElements(this.gl.TRIANGLES, triangleIndices.length, this.gl.UNSIGNED_BYTE, 0);
 }
-*/
-/*
-tower.prototype.drawtry = function (tModel, tCamera, tProjection, hh, ll, ww){
-   var h = hh / 2;
-   var l = ll / 2;
-   var w = ww / 2;
-
-   var point = new Float32Array([
-         0, 0.5, 0,    0.5, 0.5, 0,   0, 0.5, 0.5
-         ]);
-   var normal = new Float32Array([
-         0, 1, 0,    0, 1, 0,    0, 1, 0
-         ]);
-   var color = new Float32Array([
-      1, 0, 0, 0, 1, 0, 0, 0, 1
-         ]);
-   var index = new Uint8Array([
-      0, 1, 2
-         ]);
-   var positionBuffer = this.gl.createBuffer();
-   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
-   this.gl.bufferData(this.gl.ARRAY_BUFFER, point, this.gl.STATIC_DRAW);
-   positionBuffer.itemSize = 3;
-   positionBuffer.numItems = 3;
-
-   var normalBuffer = this.gl.createBuffer();
-   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normalBuffer);
-   this.gl.bufferData(this.gl.ARRAY_BUFFER, normal, this.gl.STATIC_DRAW);
-   normalBuffer.itemSize = 3;
-   normalBuffer.numItems = 3;
-
-
-   var colorBuffer = this.gl.createBuffer();
-   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
-   this.gl.bufferData(this.gl.ARRAY_BUFFER, color, this.gl.STATIC_DRAW);
-   colorBuffer.itemSize = 3;
-   colorBuffer.numItems = 3;
-
-   var indexBuffer = this.gl.createBuffer();
-   this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-   this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, index, this.gl.STATIC_DRAW);    
-   indexBuffer.itemSize = 1;
-   indexBuffer.numItems = 3;
-
-   var tMV = this.m4.multiply(tModel, tCamera);//ModelViewMatrix
-   var tNormal = this.m4.inverse(this.m4.transpose(tMV));
-   var tttt = this.m4.multiply(tMV, tProjection);
-   var vv1 = this.m4.transformPoint(tttt, [0, 1, 0]);
-   var vv2 = this.m4.transformPoint(tttt, [1, 1, 0]);
-   var vv3 = this.m4.transformPoint(tttt, [0, 1, 1]);
-   //console.log(vv1);
-   //console.log(vv2);
-   //console.log(vv3);
-   
-   
-   //test
-   tMV = this.m4.identity();
-   tProjection = this.m4.identity();
-   tNormal = this.m4.identity();
-
-   //test
-   
-   this.SP.modelViewMatrix = this.gl.getUniformLocation(this.SP, "modelViewMatrix"); 
-   this.gl.uniformMatrix4fv(this.SP.modelViewMatrix,false,tMV);
-   this.SP.normalMatrix = this.gl.getUniformLocation(this.SP, "normalMatrix");
-   this.gl.uniformMatrix4fv(this.SP.modelViewMatrix,false,tNormal);
-   this.SP.projectionMatrix = this.gl.getUniformLocation(this.SP, "projectionMatrix");
-   this.gl.uniformMatrix4fv(this.SP.projectionMatrix, false, tProjection);
-
-
-   this.SP.PositionAttribute = this.gl.getAttribLocation(this.SP, "vPos");
+tower.prototype.setupdraw = function(){
+   this.SP.PositionAttribute = this.gl.getAttribLocation(this.SP, "vPosition");
    this.gl.enableVertexAttribArray(this.SP.PositionAttribute);
 
    this.SP.NormalAttribute = this.gl.getAttribLocation(this.SP, "vNormal");
    this.gl.enableVertexAttribArray(this.SP.NormalAttribute);
-   
+
    this.SP.ColorAttribute = this.gl.getAttribLocation(this.SP, "vColor");
-   this.gl.enableVertexAttribArray(this.SP.ColorAttribute);
+   this.gl.enableVertexAttribArray(this.SP.ColorAttribute);    
 
+   // this gives us access to the matrix uniform
+   this.SP.MVmatrix = this.gl.getUniformLocation(this.SP,"modelViewMatrix");
 
-   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
-   this.gl.vertexAttribPointer(this.SP.PositionAttribute, positionBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
-   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normalBuffer);
-   this.gl.vertexAttribPointer(this.SP.NormalAttribute, normalBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
-   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
-   this.gl.vertexAttribPointer(this.SP.ColorAttribute, colorBuffer.itemSize, this.gl.FLOAT,false, 0, 0);
+   this.SP.Nmatrix = this.gl.getUniformLocation(this.SP,"normalMatrix");
 
-   this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-   
-   // Do the drawing
-   this.gl.drawElements(this.gl.TRIANGLES, index.length, this.gl.UNSIGNED_BYTE, 0);
-   
+   this.SP.Pmatrix = this.gl.getUniformLocation(this.SP,"projectionMatrix");
+
 }
-*/
