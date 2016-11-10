@@ -11,7 +11,7 @@ tower.prototype.drawAll = function (tCamera, tProjection){
    var height = 200;
    var buildcoeffecient = 1.0;
    this.buildlayer(tModel, tCamera, tProjection, buildcoeffecient);
-   for (var i = 0 ; i < 7 ; ++i){
+   for (var i = 0 ; i < 5 ; ++i){
       var tMoveup = this.m4.translation([0, height * buildcoeffecient, 0]);
       buildcoeffecient = buildcoeffecient * 0.8;
       tModel = this.m4.multiply(tMoveup, tModel);
