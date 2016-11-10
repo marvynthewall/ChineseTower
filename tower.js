@@ -7,13 +7,20 @@ function tower(shaderProgram, m4, gl){
 }
 tower.prototype.drawAll = function (tCamera, tProjection){
    var tModel = this.m4.identity();
-   this.buildlayer(tModel, tCamera, tProjection);
-   //this.drawtrysimple(this.m4.identity(), tCamera, tProjection, 10, 10, 10);
-   //this.drawCube(this.m4.identity(), tCamera, tProjection, 10, 10, 10);
+   //tModel = this.m4.translation([0, 100, 0]);
+   var height = 200;
+   var buildcoeffecient = 1.0;
+   this.buildlayer(tModel, tCamera, tProjection, buildcoeffecient);
+   for (var i = 0 ; i < 7 ; ++i){
+      var tMoveup = this.m4.translation([0, height * buildcoeffecient, 0]);
+      buildcoeffecient = buildcoeffecient * 0.8;
+      tModel = this.m4.multiply(tMoveup, tModel);
+      this.buildlayer(tModel, tCamera, tProjection, buildcoeffecient);
+   }
 }
-tower.prototype.buildlayer = function(tModel, tCamera, tProjection){
-   var l = 400;
-   var h = 250;
+tower.prototype.buildlayer = function(tModel, tCamera, tProjection, CE = 1.0){
+   var l = 400 * CE;
+   var h = 200 * CE;
    var w = l;
    var axisX = [1, 0, 0];
    var axisY = [0, 1, 0];
@@ -21,26 +28,34 @@ tower.prototype.buildlayer = function(tModel, tCamera, tProjection){
    
    // roofside
    var tiltangle = Math.PI/5;
-   var rfx1 = 0.76 * l / 2;
-   var rfx2 = 1.36 * l / 2;
-   var rfy = 5;
-   var rfz1 = -0.15 * l;
-   var rfz2 = 0.22 * l;
+   var rfx1 = (l / 2) * 0.76;
+   var rfx2 = (l / 2) * 1.36;
+   var rfy = l * 0.012;
+   var rfz1 = l * (-0.15);
+   var rfz2 = l * 0.22;
    var roofcylindercolor = 'roof';
    
    // corner support
    var tiltcorner = Math.PI * 0.65;
-   var ccy1 = l * 0.3;
-   var cornerL = 240;
-   var cornerR = 20;
+   var ccy1 = l * 0.25;
+   var cornerL = l * 0.55;
+   var cornerR = l * 0.05;
 
+   // side support
+   var sideback = -l * 0.17;
+   var sideL = l * 0.4;
+   var sideR = l * 0.03;
+   var sideout = -l * 0.02;
+   var sidemove = l * 0.22;
+
+   var trotateX90 = this.m4.axisRotation(axisX, Math.PI/2);
    var trotateY45 = this.m4.axisRotation(axisY, Math.PI/4);
    var trotateY90 = this.m4.axisRotation(axisY, Math.PI/2);
 
 
 
+   tModel = this.m4.multiply(this.m4.translation([0, h, 0]), tModel);
    this.drawblock(tModel, tCamera, tProjection, l, h, w, 'block');
-   tModel = this.m4.translation([0, h, 0]);
    //this.drawcylinder(tModel, tCamera, tProjection, 200, 80, roofcylindercolor);
    var tNow = tModel;
    var tedge = this.m4.translation([0, 0, w/2]);
@@ -78,6 +93,50 @@ tower.prototype.buildlayer = function(tModel, tCamera, tProjection){
    tModel = this.m4.multiply(tToCorner, tNow);
    this.drawcylinder(tModel, tCamera, tProjection, cornerL, cornerR, roofcylindercolor);
    tNow = this.m4.multiply(trotateY90, tNow);
+
+   // the cylinder at roofside
+   
+   var tiltside = this.m4.multiply(trotateX90, tilt);
+   var tSideback = this.m4.translation([0, sideback, sideout]);
+   var tToroofside = this.m4.multiply(tSideback, this.m4.multiply(tiltside, tedge));
+   var tsidemove1 = this.m4.translation([sidemove, 0, 0]);
+   var tsidemove2 = this.m4.translation([-sidemove, 0, 0]);
+
+   tModel = this.m4.multiply(tToroofside, tNow);
+   var tModelnow = tModel;
+   this.drawcylinder(tModel, tCamera, tProjection, sideL, sideR, roofcylindercolor);
+   tModel = this.m4.multiply(tsidemove1, tModelnow);
+   this.drawcylinder(tModel, tCamera, tProjection, sideL, sideR, roofcylindercolor);
+   tModel = this.m4.multiply(tsidemove2, tModelnow);
+   this.drawcylinder(tModel, tCamera, tProjection, sideL, sideR, roofcylindercolor);
+   tNow = this.m4.multiply(trotateY90, tNow);
+   
+   tModel = this.m4.multiply(tToroofside, tNow);
+   var tModelnow = tModel;
+   this.drawcylinder(tModel, tCamera, tProjection, sideL, sideR, roofcylindercolor);
+   tModel = this.m4.multiply(tsidemove1, tModelnow);
+   this.drawcylinder(tModel, tCamera, tProjection, sideL, sideR, roofcylindercolor);
+   tModel = this.m4.multiply(tsidemove2, tModelnow);
+   this.drawcylinder(tModel, tCamera, tProjection, sideL, sideR, roofcylindercolor);
+   tNow = this.m4.multiply(trotateY90, tNow);
+
+   tModel = this.m4.multiply(tToroofside, tNow);
+   var tModelnow = tModel;
+   this.drawcylinder(tModel, tCamera, tProjection, sideL, sideR, roofcylindercolor);
+   tModel = this.m4.multiply(tsidemove1, tModelnow);
+   this.drawcylinder(tModel, tCamera, tProjection, sideL, sideR, roofcylindercolor);
+   tModel = this.m4.multiply(tsidemove2, tModelnow);
+   this.drawcylinder(tModel, tCamera, tProjection, sideL, sideR, roofcylindercolor);
+   tNow = this.m4.multiply(trotateY90, tNow);
+   
+   tModel = this.m4.multiply(tToroofside, tNow);
+   var tModelnow = tModel;
+   this.drawcylinder(tModel, tCamera, tProjection, sideL, sideR, roofcylindercolor);
+   tModel = this.m4.multiply(tsidemove1, tModelnow);
+   this.drawcylinder(tModel, tCamera, tProjection, sideL, sideR, roofcylindercolor);
+   tModel = this.m4.multiply(tsidemove2, tModelnow);
+   this.drawcylinder(tModel, tCamera, tProjection, sideL, sideR, roofcylindercolor);
+   tNow = this.m4.multiply(trotateY90, tNow);
 }
 
 
@@ -110,7 +169,7 @@ tower.prototype.drawblock = function (tModel, tCamera, tProjection, ll, hh, ww, 
    if(cc == 'block'){
       var color1 = [0.6, 0.4, 0];
       var con1 = [0.6, 0.4, 0];
-      var con2 = [0.3, 0.2, 1.0];
+      var con2 = [0.6, 0.4, 0];
 
       for(var i = 1; i < 8 ; ++i)
          color1 = color1.concat(con1);
@@ -173,7 +232,7 @@ tower.prototype.drawblock = function (tModel, tCamera, tProjection, ll, hh, ww, 
    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, triangleIndices, this.gl.STATIC_DRAW);  
 
    if(cc == 'block')
-      tModel = this.m4.translation([0, h, 0]);
+      tModel = this.m4.multiply(this.m4.translation([0, -h, 0]), tModel);
    var tMVP1=this.m4.multiply(this.m4.multiply(tModel,tCamera),tProjection);
    var tmodelView = this.m4.multiply(tModel, tCamera);
    var tNormal = this.m4.inverse(this.m4.transpose(tmodelView));
@@ -378,9 +437,9 @@ tower.prototype.drawroofside = function (tModel, tCamera, tProjection, x1, x2, h
          ]);
 
    // vertex colors
-   var color1 = [0.4, 0.3, 0.1];
-   var con1 = [0.4, 0.3, 0.1];
-   var con2 = [0.4, 0.2, 0.1];
+   var color1 = [0.45, 0.25, 0.1];
+   var con1 = [0.45, 0.25, 0.1];
+   var con2 = [0.45, 0.25, 0.1];
 
    for(var i = 1; i < 4 ; ++i)
       color1 = color1.concat(con1);

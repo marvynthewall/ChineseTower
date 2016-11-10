@@ -42,20 +42,19 @@ function start(){
    var maxh = 1000;
    var tick = (maxh - minh) / 100;
    var height;
-   var dis = 600;
+   var dis = 800;
+   var target = [0,300,0];
+   var up = [0,1,0];
    function draw(){
       gl.clearColor(0.0, 0.0, 0.0, 1.0);
       gl.enable(gl.DEPTH_TEST);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       
       theta = theta + Math.PI/100;
-      theta = 0.3;
       
       height = minh + bar1.value * tick;
       
       var eye = [dis*Math.cos(theta),height,dis*Math.sin(theta)];
-      var target = [0,200,0];
-      var up = [0,1,0];
 
       var tCamera = m4.inverse(m4.lookAt(eye,target,up));
       var tProjection = m4.perspective(Math.PI/2,1,10,10000);
@@ -64,7 +63,7 @@ function start(){
 
       Tower.drawAll(tCamera, tProjection);
 
-      //window.requestAnimationFrame(draw);
+      window.requestAnimationFrame(draw);
    }
    
    bar1.addEventListener("input", draw);
