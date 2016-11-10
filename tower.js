@@ -14,7 +14,7 @@ tower.prototype.drawAll = function (tCamera, tProjection){
 tower.prototype.buildlayer = function(tModel, tCamera, tProjection){
    this.drawblock(tModel, tCamera, tProjection, 200, 200, 200, 'block');
    tModel = this.m4.translation([0, 200, 0]);
-   //this.drawcylinder(tModel, tCamera, tProjection, 50, 10);
+   this.drawcylinder(tModel, tCamera, tProjection, 200, 80);
 }
 
 tower.prototype.drawblock = function (tModel, tCamera, tProjection, ll, hh, ww, cc = 'normal'){
@@ -218,31 +218,29 @@ tower.prototype.drawcylinder = function (tModel, tCamera, tProjection, h, r){
       else
          vernor = vernor.concat(inver);
    }
+   for(var i = 0 ; i < 12 ; ++i)
+      vernor = vernor.concat([0, 1, 0]);
+   for(var i = 0 ; i < 12 ; ++i)
+      vernor = vernor.concat([0, -1, 0]);
+   var vertexNormals = new Float32Array(vernor);
 
-   /*
-   var vertexNormals = new Float32Array(
-         [  0, 0, 1,  0, 0, 1,  0, 0, 1,  0, 0, 1,
-            1, 0, 0,  1, 0, 0,  1, 0, 0,  1, 0, 0,
-            0, 1, 0,  0, 1, 0,  0, 1, 0,  0, 1, 0,
-            -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0,
-            0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0,
-            0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1 ]);
-*/
 
    // vertex colors
    var color1 = 0;
    for(var i = 0 ; i < 12; ++i){
-      var incolor = [0.0, 0.0, 0.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.0, 0.0, 0.0];
+      var incolor = [0.15, 0.8, 0.15, 0.15, 0.8, 0.15, 0.15, 0.8, 0.15, 0.15, 0.8, 0.15];
+
       if(color1 == 0)color1 = incolor;
       else color1 = color1.concat(incolor);
    }
+   console.log(color1.length);
    for(var i = 0 ; i < 12; ++i){
       var incolor = [0.6, 0.3, 0.5];
-      color1.concat(incolor);
+      color1 = color1.concat(incolor);
    }
    for(var i = 0 ; i < 12; ++i){
       var incolor = [0.6, 0.3, 0.5];
-      color1.concat(incolor);
+      color1 = color1.concat(incolor);
    }
    var vertexColors = new Float32Array(color1);
 
@@ -275,28 +273,26 @@ tower.prototype.drawcylinder = function (tModel, tCamera, tProjection, h, r){
    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, trianglePosBuffer);
    this.gl.bufferData(this.gl.ARRAY_BUFFER, vertexPos, this.gl.STATIC_DRAW);
    trianglePosBuffer.itemSize = 3;
-   trianglePosBuffer.numItems = 24;
+   trianglePosBuffer.numItems = 72;
 
    // a buffer for normals
    var normalBuffer = this.gl.createBuffer();
    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normalBuffer);
    this.gl.bufferData(this.gl.ARRAY_BUFFER, vertexNormals, this.gl.STATIC_DRAW);
    normalBuffer.itemSize = 3;
-   normalBuffer.numItems = 24;
+   normalBuffer.numItems = 72;
 
    // a buffer for colors
    var colorBuffer = this.gl.createBuffer();
    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
    this.gl.bufferData(this.gl.ARRAY_BUFFER, vertexColors, this.gl.STATIC_DRAW);
    colorBuffer.itemSize = 3;
-   colorBuffer.numItems = 24;
+   colorBuffer.numItems = 72;
    // a buffer for indices
    var indexBuffer = this.gl.createBuffer();
    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, triangleIndices, this.gl.STATIC_DRAW);  
 
-   if(cc == 'block')
-      tModel = this.m4.translation([0, h, 0]);
    var tMVP1=this.m4.multiply(this.m4.multiply(tModel,tCamera),tProjection);
    var tmodelView = this.m4.multiply(tModel, tCamera);
    var tNormal = this.m4.inverse(this.m4.transpose(tmodelView));

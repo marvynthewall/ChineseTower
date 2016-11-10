@@ -29,32 +29,32 @@
       varying vec3 fColor;
       void main()
       {
-         float diffusingeffect = 0.3;
-         float reflectioneffect = 0.2;
+         float diffusingeffect = 0.2;
+         float reflectioneffect = 0.1;
          float whitelighteffect = 0.1;
          float coloreffect = 0.6;
          vec3 diffuselightcolor = vec3(1.0, 1.0, 1.0);
          vec3 diffuselightdir = normalize(vec3(1.0, -1.0, -0.6));
-/*
-         float factor = 16.0;
+
+         float factor = 8.0;
          float factor2 = 8.0;
-         vec3 reflectionlightcolor = vec3(0.0, 0.0, 1.0);
+         vec3 reflectionlightcolor = vec3(1.0, 0.0, 0.0);
          float theta = time * 20.0;
-         vec3 reflectionlightsource = vec3( 100.0*cos(theta), 20.0, 100.0 * sin(theta));
-*/
+         vec3 reflectionlightsource = vec3( 300.0*cos(theta), 20.0, 300.0 * sin(theta));
+
 
          vec3 white = vec3(1.0, 1.0, 1.0);
-/*
+
          float ct = cos(time*20.0);
          float tt = -150.0;
          if(ct > -0.5)
          tt = 300.0 * cos(time * 20.0);
          vec3 whitereflectsource = vec3(-150.0 + tt, fPosition.y + 100.0, fPosition.z + 50.0);
-*/
+
          float diff = max(0.0, dot(fNormal, diffuselightdir));
          vec3 diffuse = diff * diffuselightcolor;
          
-         /*
+         
          vec3 toeye = normalize(-fPosition);
          vec3 toref1 = normalize(reflectionlightsource - fPosition);
          vec3 highlight = normalize(toeye+toref1);
@@ -67,9 +67,9 @@
          float ref2 = max(0.0, dot(vec3(0.0, 1.0, 0.5), fNormal) * dot(fNormal, hl2));
          ref2 = pow(ref2, factor2);
          vec3 reflection2 = white * ref2;
-         */
-         //vec3 finalcolor = coloreffect * fColor + diffusingeffect * diffuse + reflectioneffect * reflection1 + whitelighteffect* reflection2;
-         vec3 finalcolor = coloreffect * fColor + diffusingeffect * diffuse;
+         
+         vec3 finalcolor = coloreffect * fColor + diffusingeffect * diffuse + reflectioneffect * reflection1 + whitelighteffect* reflection2;
+         //vec3 finalcolor = coloreffect * fColor + diffusingeffect * diffuse;
          gl_FragColor = vec4(finalcolor, 1.0);
 }
 

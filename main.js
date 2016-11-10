@@ -42,7 +42,7 @@ function start(){
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       
       theta = theta + Math.PI/100;
-      var eye = [500.0*Math.cos(theta),500.0,500.0*Math.sin(theta)];
+      var eye = [500.0*Math.cos(theta),600.0,500.0*Math.sin(theta)];
       var target = [0,200,0];
       var up = [0,1,0];
       
