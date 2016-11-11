@@ -1,22 +1,29 @@
 "use strict"
-function tower(shaderProgram, m4, gl){
+function tower(shaderProgram,shaderProgram2, m4, gl){
    this.SP = shaderProgram;
+   this.SP2 = shaderProgram2;
    this.m4 = m4;
    this.gl = gl;
-   
 }
 tower.prototype.drawAll = function (tCamera, tProjection){
+   this.gl.useProgram(this.SP);
    var tModel = this.m4.identity();
    //tModel = this.m4.translation([0, 100, 0]);
    var height = 200;
    var buildcoeffecient = 1.0;
    this.buildlayer(tModel, tCamera, tProjection, buildcoeffecient);
+   var tMoveup;
    for (var i = 0 ; i < 5 ; ++i){
-      var tMoveup = this.m4.translation([0, height * buildcoeffecient, 0]);
+      tMoveup = this.m4.translation([0, height * buildcoeffecient, 0]);
       buildcoeffecient = buildcoeffecient * 0.8;
       tModel = this.m4.multiply(tMoveup, tModel);
       this.buildlayer(tModel, tCamera, tProjection, buildcoeffecient);
    }
+   tMoveup = this.m4.translation([0, height * buildcoeffecient, 0]);
+   tModel = this.m4.multiply(tMoveup, tModel);
+   
+   this.gl.useProgram(this.SP2);
+   this.drawcylinder2(tModel, tCamera, tProjection, 100, 40);
 }
 tower.prototype.buildlayer = function(tModel, tCamera, tProjection, CE = 1.0){
    var l = 400 * CE;
@@ -523,4 +530,177 @@ tower.prototype.setupdraw = function(){
 
    this.SP.Pmatrix = this.gl.getUniformLocation(this.SP,"projectionMatrix");
 
+}
+tower.prototype.setupdraw2 = function(){
+   this.SP2.PositionAttribute = this.gl.getAttribLocation(this.SP2, "vPosition");
+   this.gl.enableVertexAttribArray(this.SP2.PositionAttribute);
+
+   this.SP2.NormalAttribute = this.gl.getAttribLocation(this.SP2, "vNormal");
+   this.gl.enableVertexAttribArray(this.SP2.NormalAttribute);
+
+   this.SP2.ColorAttribute = this.gl.getAttribLocation(this.SP2, "vColor");
+   this.gl.enableVertexAttribArray(this.SP2.ColorAttribute);    
+
+   // this gives us access to the matrix uniform
+   this.SP2.MVmatrix = this.gl.getUniformLocation(this.SP2,"modelViewMatrix");
+
+   this.SP2.Nmatrix = this.gl.getUniformLocation(this.SP2,"normalMatrix");
+
+   this.SP2.Pmatrix = this.gl.getUniformLocation(this.SP2,"projectionMatrix");
+
+}
+tower.prototype.drawcylinder2 = function (tModel, tCamera, tProjection, h, r, index = 'original'){
+   this.setupdraw2();
+
+   // Vertex Position
+   // 4* 12 at side, 12 at top, 12 at bottom, 72 in total
+   var verpos = 0;
+   for(var i = 0; i < 12; ++i){
+      var vangle1 = Math.PI / 6 * i;
+      var vangle2 = Math.PI / 6 * (i+1);
+      var v1z = r * Math.cos(vangle1);
+      var v1x = r * Math.sin(vangle1);
+      var v2z = r * Math.cos(vangle2);
+      var v2x = r * Math.sin(vangle2);
+      var inver = [v1x, 0, v1z,   v2x, 0, v2z,   v2x, h, v2z, v1x, h, v1z]
+      if(verpos == 0)
+         verpos = inver;
+      else
+         verpos = verpos.concat(inver);
+   }
+   for(var i = 0 ; i < 12 ; ++i){
+      var inver = [r * Math.cos(Math.PI/6*i), 0, r * Math.sin(Math.PI/6*i)];
+      verpos = verpos.concat(inver);
+   }
+   for(var i = 0 ; i < 12 ; ++i){
+      var inver = [r * Math.cos(Math.PI/6*i), h, r * Math.sin(Math.PI/6*i)];
+      verpos = verpos.concat(inver);
+   }
+   var vertexPos = new Float32Array(verpos);
+   
+   // vertex normals
+   var vernor = 0;
+   for(var i = 0 ; i < 12 ; ++i){
+      var va1 = Math.PI / 6 * i;
+      var va2 = Math.PI / 6 * (i+1);
+      var v1z = Math.cos(va1);
+      var v1x = Math.sin(va1);
+      var v2z = Math.cos(va2);
+      var v2x = Math.sin(va2);
+      var inver = [v1x, 0, v1z,   v2x, 0, v2z,   v2x, 0, v2z, v1x, 0, v1z];
+      if(vernor == 0)
+         vernor = inver;
+      else
+         vernor = vernor.concat(inver);
+   }
+   for(var i = 0 ; i < 12 ; ++i)
+      vernor = vernor.concat([0, 1, 0]);
+   for(var i = 0 ; i < 12 ; ++i)
+      vernor = vernor.concat([0, -1, 0]);
+   var vertexNormals = new Float32Array(vernor);
+
+
+   // vertex colors
+   if(index=='original'){
+      var color1 = 0;
+      for(var i = 0 ; i < 12; ++i){
+         var incolor = [0.15, 0.8, 0.15, 0.15, 0.8, 0.15, 0.15, 0.8, 0.15, 0.15, 0.8, 0.15];
+
+         if(color1 == 0)color1 = incolor;
+         else color1 = color1.concat(incolor);
+      }
+      for(var i = 0 ; i < 12; ++i){
+         var incolor = [0.6, 0.3, 0.5];
+         color1 = color1.concat(incolor);
+      }
+      for(var i = 0 ; i < 12; ++i){
+         var incolor = [0.6, 0.3, 0.5];
+         color1 = color1.concat(incolor);
+      }
+      var vertexColors = new Float32Array(color1);
+   }
+   else if(index == 'roof'){
+      var color1 = [0.4, 0.2, 0.1];
+      var con = [0.4, 0.2, 0.1];
+      for(var i = 1 ; i < 72; ++i)
+         color1 = color1.concat(con);
+      var vertexColors = new Float32Array(color1);
+   }
+   /*var color11 = [1, 1, 1];
+   var color111 = [1, 1, 1];
+   for(var i = 1 ; i < 72 ; ++i){
+      color11 = color11.concat(color111);
+   }
+   var vertexColors = new Float32Array(color11);
+   */
+   // element index array
+   // 2 * 12 at side, 10 at top and 10 at bottom, 44 in total
+   var triind = 0;
+   for(var i = 0 ; i < 12; ++i){
+      var intriind = [4*i, 4*i+1, 4*i+2, 4*i, 4*i+2, 4*i+3];
+      if(triind == 0)
+         triind = intriind;
+      else 
+         triind = triind.concat(intriind);
+   }
+   var nowin = 48;
+   for(var i = 1 ; i <= 10 ; ++i){
+      var intriind = [nowin, nowin+i, nowin+i+1];
+      triind = triind.concat(intriind);
+   }
+   var nowin = 60;
+   for(var i = 1 ; i <= 10 ; ++i){
+      var intriind = [nowin, nowin+i, nowin+i+1];
+      triind = triind.concat(intriind);
+   }
+   var triangleIndices = new Uint8Array(triind);
+
+   // we need to put the vertices into a buffer so we can
+   // block transfer them to the graphics hardware
+   var trianglePosBuffer = this.gl.createBuffer();
+   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, trianglePosBuffer);
+   this.gl.bufferData(this.gl.ARRAY_BUFFER, vertexPos, this.gl.STATIC_DRAW);
+   trianglePosBuffer.itemSize = 3;
+   trianglePosBuffer.numItems = 72;
+
+   // a buffer for normals
+   var normalBuffer = this.gl.createBuffer();
+   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normalBuffer);
+   this.gl.bufferData(this.gl.ARRAY_BUFFER, vertexNormals, this.gl.STATIC_DRAW);
+   normalBuffer.itemSize = 3;
+   normalBuffer.numItems = 72;
+
+   // a buffer for colors
+   var colorBuffer = this.gl.createBuffer();
+   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
+   this.gl.bufferData(this.gl.ARRAY_BUFFER, vertexColors, this.gl.STATIC_DRAW);
+   colorBuffer.itemSize = 3;
+   colorBuffer.numItems = 72;
+   // a buffer for indices
+   var indexBuffer = this.gl.createBuffer();
+   this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+   this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, triangleIndices, this.gl.STATIC_DRAW);  
+
+   var tMVP1=this.m4.multiply(this.m4.multiply(tModel,tCamera),tProjection);
+   var tmodelView = this.m4.multiply(tModel, tCamera);
+   var tNormal = this.m4.inverse(this.m4.transpose(tmodelView));
+
+   this.gl.uniformMatrix4fv(this.SP2.MVmatrix, false, tmodelView);
+
+   this.gl.uniformMatrix4fv(this.SP2.Nmatrix, false, tNormal);
+
+   this.gl.uniformMatrix4fv(this.SP2.Pmatrix, false, tProjection);
+
+   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, trianglePosBuffer);
+   this.gl.vertexAttribPointer(this.SP2.PositionAttribute, trianglePosBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normalBuffer);
+   this.gl.vertexAttribPointer(this.SP2.NormalAttribute, normalBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
+   this.gl.vertexAttribPointer(this.SP2.ColorAttribute, colorBuffer.itemSize, this.gl.FLOAT,false, 0, 0);
+
+   this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+
+   // Do the drawing
+   this.gl.drawElements(this.gl.TRIANGLES, triangleIndices.length, this.gl.UNSIGNED_BYTE, 0);
 }

@@ -33,13 +33,44 @@ function start(){
    if(!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)){
       alert("Could not initialise shaders");
    }
+
+   // shader2
+   var vertexSource2 = document.getElementById("vs2").text;
+   var fragmentSource2 = document.getElementById("fs2").text;
+
+   var vertexShader2 = gl.createShader(gl.VERTEX_SHADER);
+   gl.shaderSource(vertexShader2, vertexSource2);
+   gl.compileShader(vertexShader2);
+
+   if(!gl.getShaderParameter(vertexShader2, gl.COMPILE_STATUS)){
+      alert(gl.getShaderInfoLog(vertexShader2));
+      return null;
+   }
+
+   var fragmentShader2 = gl.createShader(gl.FRAGMENT_SHADER);
+   gl.shaderSource(fragmentShader2, fragmentSource2);
+   gl.compileShader(fragmentShader2);
+
+   if(!gl.getShaderParameter(fragmentShader2, gl.COMPILE_STATUS)){
+      alert(gl.getShaderInfoLog(fragmentShader2));
+      return null;
+   }
+
+   var shaderProgram2 = gl.createProgram();
+   gl.attachShader(shaderProgram2, vertexShader2);
+   gl.attachShader(shaderProgram2, fragmentShader2);
+   gl.linkProgram(shaderProgram2);
+
+   if(!gl.getProgramParameter(shaderProgram2, gl.LINK_STATUS)){
+      alert("Could not initialise shaders");
+   }
    
    var bar1 = document.getElementById("bar1");
 
-   var Tower = new tower(shaderProgram, m4, gl);
+   var Tower = new tower(shaderProgram, shaderProgram2, m4, gl);
    var theta = Math.PI/2;
    var minh = 0;
-   var maxh = 1000;
+   var maxh = 1200;
    var tick = (maxh - minh) / 100;
    var height;
    var dis = 800;
@@ -59,7 +90,6 @@ function start(){
       var tCamera = m4.inverse(m4.lookAt(eye,target,up));
       var tProjection = m4.perspective(Math.PI/2,1,10,10000);
 
-      gl.useProgram(shaderProgram);
 
       Tower.drawAll(tCamera, tProjection);
 
